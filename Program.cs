@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Documentation;
 using OpenIddict.Documentation.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,12 +12,16 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    options.UseInMemoryDatabase(nameof(ApplicationDbContext));
+    //options.UseSqlServer(connectionString);
     options.UseOpenIddict();
 });
 
 builder.Services.AddOpenIddict()
     // Register the OpenIddict core components.
+
+
+
     .AddCore(options =>
     {
         // Configure OpenIddict to use the Entity Framework Core stores and models.
@@ -42,6 +47,7 @@ builder.Services.AddOpenIddict()
         // Register the ASP.NET Core host and configure the ASP.NET Core options.
         options.UseAspNetCore()
                 .EnableTokenEndpointPassthrough();
+        options.DisableAccessTokenEncryption();
     });
 
 
@@ -53,6 +59,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddRazorPages();
+builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
 
@@ -72,7 +79,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
@@ -83,7 +90,7 @@ app.UseDeveloperExceptionPage();
 
 app.UseCors();
 
-app.UseAuthentication();
+
 app.UseEndpoints(options =>
 {
     options.MapControllers();
